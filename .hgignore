@@ -1,0 +1,8 @@
+syntax: glob
+*.suo
+*.user
+
+syntax: regexp
+/bin/
+/obj/
+NUnit/
