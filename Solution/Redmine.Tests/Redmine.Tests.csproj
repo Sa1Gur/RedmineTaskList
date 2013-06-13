@@ -48,6 +48,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\NUnit\lib\Rhino.Mocks.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Redmine\Redmine.csproj">
@@ -56,6 +57,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestWebRequest.cs" />
+    <Compile Include="RedmineWebRequestTests.cs" />
     <Compile Include="RedmineXmlParserTests.cs">
       <SubType>Code</SubType>
     </Compile>
