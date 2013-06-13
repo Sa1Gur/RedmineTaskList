@@ -5,27 +5,26 @@ namespace Redmine.Tests
 {
     public class TestWebRequest : WebRequest, IWebRequestCreate
     {
-        private TestWebRequest _request;
+        private static TestWebRequest Next;
 
-        public TestWebRequest() { }
-
-        private TestWebRequest(TestWebRequest request)
+        private TestWebRequest()
         {
-            _request = request;
         }
         
         new public virtual void Create(Uri uri) { } // Used for mock expectation
 
-        public static IWebRequestCreate GetCreator(TestWebRequest request)
+        public static IWebRequestCreate GetCreator(TestWebRequest next)
         {
-            return new TestWebRequest(request);
+            Next = next;
+
+            return new TestWebRequest();
         }
 
         WebRequest IWebRequestCreate.Create(Uri uri)
         {
-            _request.Create(uri);
+            Next.Create(uri);
 
-            return _request;
+            return Next;
         }
     }
 }

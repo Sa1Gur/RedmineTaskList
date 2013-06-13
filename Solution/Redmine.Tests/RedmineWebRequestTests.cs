@@ -25,8 +25,8 @@ namespace Redmine.Tests
             request.Expect(x => x.Headers.Add("Authorization", "Basic bGVtb246UGEkc3cwcmQ="));
             request.Expect(x => x.GetResponse()).Return(response);
             response.Stub(x => x.GetResponseStream()).Return(responseStream);
-            
-            var redmineRequest = new RedmineWebRequest(url, "lemon", "Pa$sw0rd");
+
+            var redmineRequest = new RedmineWebRequest("lemon", "Pa$sw0rd", url);
             var result = redmineRequest.GetResponse();
 
             request.VerifyAllExpectations();
