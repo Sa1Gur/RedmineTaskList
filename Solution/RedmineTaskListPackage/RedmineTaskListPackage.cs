@@ -3,6 +3,7 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using EnvDTE;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Redmine;
@@ -13,9 +14,11 @@ namespace RedmineTaskListPackage
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(RedmineOptions), "Redmine Task List", "Connection settings", 101, 106, true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)] 
     [Guid(Guids.guidRedminePkgString)]
     public sealed class RedmineTaskListPackage : Package
     {
+        private static Guid RedmineTaskCategoryGuid = new Guid("d43e2ad5-1831-4192-b2e1-3c2da6486d79");
         private RedmineTaskProvider taskProvider;
         private MenuCommand getTasksMenuCommand;
 
@@ -31,18 +34,26 @@ namespace RedmineTaskListPackage
         {
             base.Initialize();
 
+            InitializeTaskProvider();
+            AddMenuCommands();
+        }
+
+        private void AddMenuCommands()
+        {
             var menuCommandService = GetService(typeof(IMenuCommandService)) as IMenuCommandService;
-            
-            menuCommandService.AddCommand(getTasksMenuCommand);
+
+            if (menuCommandService != null)
+            {
+                menuCommandService.AddCommand(getTasksMenuCommand);
+            }
         }
 
         private void GetTasksMenuItemCallback(object sender, EventArgs e)
         {
             try
             {
-                InitializeTaskProvider();
                 RefreshTasks();
-                ShowTaskList();
+                taskProvider.Show();
             }
             catch (Exception exception)
             {
@@ -50,27 +61,24 @@ namespace RedmineTaskListPackage
             }
         }
 
+
         private void InitializeTaskProvider()
         {
-            if (taskProvider == null)
-            {
-                taskProvider = new RedmineTaskProvider(this);
-            }
+            taskProvider = new RedmineTaskProvider(this);
+            taskProvider.Register();
         }
 
         private void RefreshTasks()
         {
-            ClearTasks();
+            taskProvider.SuspendRefresh();
+            taskProvider.Tasks.Clear();
 
             foreach (var issue in GetTasks())
             {
                 AddTask(issue);
             }
-        }
 
-        private void ClearTasks()
-        {
-            taskProvider.Tasks.Clear();
+            taskProvider.ResumeRefresh();
         }
 
         private RedmineIssue[] GetTasks()
@@ -100,22 +108,10 @@ namespace RedmineTaskListPackage
                 IsCheckedEditable = false,
                 IsTextEditable = false,
                 CanDelete = false,
-                Category = TaskCategory.Misc, // Category seems to be ignored by VS
+                ImageIndex = 2,
+                Category = TaskCategory.Misc,
                 Text = String.Format("#{0} - {1}", issue.Id, issue.Subject),
             });
-        }
-
-        private void ShowTaskList()
-        {
-            var guidProvider = typeof(RedmineTaskProvider).GUID;
-            var taskList = GetService(typeof(SVsTaskList)) as IVsTaskList2;
-
-            if (taskList != null)
-            {
-                taskList.SetActiveProvider(ref guidProvider);
-            }
-
-            taskProvider.Show();
         }
     }
 }
