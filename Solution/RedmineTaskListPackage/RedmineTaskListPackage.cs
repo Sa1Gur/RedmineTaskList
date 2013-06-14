@@ -13,7 +13,7 @@ namespace RedmineTaskListPackage
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(RedmineOptions), "Redmine Task List", "Connection settings", 101, 106, true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [Guid(Guids.guidVSRedminePkgString)]
+    [Guid(Guids.guidRedminePkgString)]
     public sealed class RedmineTaskListPackage : Package
     {
         private RedmineTaskProvider taskProvider;
@@ -21,7 +21,7 @@ namespace RedmineTaskListPackage
 
         public RedmineTaskListPackage()
         {
-            var getTasksCommandID = new CommandID(Guids.guidVSRedmineCmdSet, (int)CommandIDs.cmdidGetTasks);
+            var getTasksCommandID = new CommandID(Guids.guidRedmineCmdSet, (int)CommandIDs.cmdidGetTasks);
             
             getTasksMenuCommand = new MenuCommand(GetTasksMenuItemCallback, getTasksCommandID);
         }
