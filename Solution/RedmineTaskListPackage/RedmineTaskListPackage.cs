@@ -16,9 +16,8 @@ namespace RedmineTaskListPackage
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)] 
     [Guid(Guids.guidRedminePkgString)]
-    public sealed class RedmineTaskListPackage : Package
+    public sealed class RedmineTaskListPackage : Package, IDisposable
     {
-        private static Guid RedmineTaskCategoryGuid = new Guid("d43e2ad5-1831-4192-b2e1-3c2da6486d79");
         private RedmineTaskProvider taskProvider;
         private MenuCommand getTasksMenuCommand;
 
@@ -112,6 +111,11 @@ namespace RedmineTaskListPackage
                 Category = TaskCategory.Misc,
                 Text = String.Format("#{0} - {1}", issue.Id, issue.Subject),
             });
+        }
+
+        public void Dispose()
+        {
+            taskProvider.Dispose();
         }
     }
 }
