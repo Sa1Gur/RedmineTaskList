@@ -23,7 +23,7 @@ namespace Redmine
             var users = RedmineXmlParser.ParseUsers(xml);
             var user = users.FirstOrDefault(x => x.Login.Equals(username));
             
-            return user != null ? user.Id : 0;;
+            return user != null ? user.Id : 0;
         }
     }
 }
