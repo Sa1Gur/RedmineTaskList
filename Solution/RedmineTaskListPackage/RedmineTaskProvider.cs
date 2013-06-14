@@ -10,6 +10,7 @@ namespace RedmineTaskListPackage
         public RedmineTaskProvider(IServiceProvider provider)
             : base(provider)
         {
+            ProviderName = "Redmine";
         }
     }
 }
