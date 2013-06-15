@@ -2,6 +2,7 @@
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -23,13 +24,15 @@ namespace RedmineTaskListPackage
 
         private RedmineTaskProvider taskProvider;
         private MenuCommand getTasksMenuCommand;
-        private IVsOutputWindowPane outputPane;
+        private object syncRoot;
+        private bool running;
 
         public RedmineTaskListPackage()
         {
             var getTasksCommandID = new CommandID(Guids.guidRedmineCmdSet, (int)CommandIDs.cmdidGetTasks);
             
             getTasksMenuCommand = new MenuCommand(GetTasksMenuItemCallback, getTasksCommandID);
+            syncRoot = new object();
         }
         
 
@@ -45,11 +48,9 @@ namespace RedmineTaskListPackage
             InitializeTaskProvider();
             AddMenuCommands();
 
-            outputPane = GetOutputPane(VSConstants.SID_SVsGeneralOutputWindowPane, "Redmine");
-
             if (GetOptions().RequestOnStartup)
             {
-                RefreshTasks();
+                RefreshTasksAsync();
             }
         }
 
@@ -65,8 +66,7 @@ namespace RedmineTaskListPackage
 
         private void GetTasksMenuItemCallback(object sender, EventArgs e)
         {
-            RefreshTasks();
-            taskProvider.Show();
+            RefreshTasksAsync(taskProvider.Show);
         }
 
 
@@ -74,6 +74,28 @@ namespace RedmineTaskListPackage
         {
             taskProvider = new RedmineTaskProvider(this);
             taskProvider.Register();
+        }
+
+        private void RefreshTasksAsync()
+        {
+            RefreshTasksAsync(() => { });
+        }
+
+        private void RefreshTasksAsync(Action callback)
+        {
+            lock (syncRoot)
+            {
+                if (!running)
+                {
+                    running = true;
+                    Action action = new Action(RefreshTasks);
+                    action.BeginInvoke((AsyncCallback)(x => { 
+                        action.EndInvoke(x); 
+                        callback.Invoke(); 
+                        running = false; 
+                    }), null);
+                }
+            }
         }
 
         private void RefreshTasks()
@@ -149,6 +171,8 @@ namespace RedmineTaskListPackage
 
         private void OutputLine(string s)
         {
+            var outputPane = GetOutputPane(VSConstants.SID_SVsGeneralOutputWindowPane, "Redmine");
+            
             outputPane.OutputString(s + '\n');
         }
     }
