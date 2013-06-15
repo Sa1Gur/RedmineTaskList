@@ -7,6 +7,17 @@ namespace Redmine
 {
     public class RedmineXmlParser
     {
+        public static RedmineResponseHeader ParseHeader(string xml)
+        {
+            var document = XDocument.Parse(xml);
+
+            return new RedmineResponseHeader() {
+                Count = ParseInt32(document.Root.Attribute("total_count").Value),
+                Offset = ParseInt32(document.Root.Attribute("offset").Value),
+                Limit = ParseInt32(document.Root.Attribute("limit").Value),
+            };
+        }
+
         public static RedmineUser[] ParseUsers(string xml)
         {
             var users = new List<RedmineUser>();

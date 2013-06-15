@@ -7,10 +7,22 @@ namespace Redmine.Tests
     class RedmineXmlParserTests
     {
         [Test]
+        public void ParseHeader_Users()
+        {
+            var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><users total_count=\"456\" offset=\"50\" limit=\"1\" type=\"array\"><user><id>1</id><login>lemon</login><firstname>Dmitry</firstname><lastname>Popov</lastname><mail>lemon@yandex.ru</mail><created_on>2013-06-13T21:30:03Z</created_on><last_login_on>2013-06-13T22:15:54Z</last_login_on></user></users>";
+            
+            var header = RedmineXmlParser.ParseHeader(xml);
+
+            Assert.AreEqual(456, header.Count);
+            Assert.AreEqual(50, header.Offset);
+            Assert.AreEqual(1, header.Limit);
+        }
+
+        [Test]
         public void ParseUsers()
         {
             var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><users total_count=\"1\" offset=\"0\" limit=\"25\" type=\"array\"><user><id>1</id><login>lemon</login><firstname>Dmitry</firstname><lastname>Popov</lastname><mail>lemon@yandex.ru</mail><created_on>2013-06-13T21:30:03Z</created_on><last_login_on>2013-06-13T22:15:54Z</last_login_on></user></users>";
-            
+
             var users = RedmineXmlParser.ParseUsers(xml);
             var user = users[0];
 

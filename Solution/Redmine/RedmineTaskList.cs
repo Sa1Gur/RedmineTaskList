@@ -45,17 +45,38 @@ namespace Redmine
         private static KeyValuePair<string, int> RequestAndCache(string username, string password, Uri baseUri)
         {
             var cacheKey = GetCacheKey(username, baseUri);
-            var uri = new Uri(baseUri, "users.xml");
-            var xml = new RedmineWebRequest(username, password, uri).GetResponse();
-            var users = RedmineXmlParser.ParseUsers(xml);
-            var user = users.FirstOrDefault(x => x.Login.Equals(username));
+            var path = "users.xml";
 
+            var user = FindUser(username, password, baseUri, path);
+            
             if (user != null)
             {
                 UserCache.Add(cacheKey, user.Id);
             }
 
             return GetCachedUser(cacheKey);
+        }
+
+        private static RedmineUser FindUser(string username, string password, Uri baseUri, string path)
+        {
+            var count = 1;
+            var offset = 0;
+            var user = default(RedmineUser);
+
+            while (user == null && offset < count)
+            {
+                var uri = new Uri(baseUri, offset == 0 ? path : String.Concat(path, "?offset=", offset));
+                var xml = new RedmineWebRequest(username, password, uri).GetResponse();
+                var header = RedmineXmlParser.ParseHeader(xml);
+                var users = RedmineXmlParser.ParseUsers(xml);
+
+                user = users.FirstOrDefault(x => x.Login.Equals(username));
+                
+                offset = header.Limit + header.Offset;
+                count = header.Count;
+            }
+
+            return user;
         }
 
         private static string GetCacheKey(string username, Uri baseUri)
