@@ -2,9 +2,11 @@
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Forms.Design;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Redmine;
 
 namespace RedmineTaskListPackage
@@ -64,7 +66,7 @@ namespace RedmineTaskListPackage
 
         private void GetTasksMenuItemCallback(object sender, EventArgs e)
         {
-            RefreshTasksAsync(taskProvider.Show);
+            RefreshTasksAsync(taskProvider.Show, ShowOutputPane);
         }
 
 
@@ -76,10 +78,10 @@ namespace RedmineTaskListPackage
 
         private void RefreshTasksAsync()
         {
-            RefreshTasksAsync(() => { });
+            RefreshTasksAsync(null, null);
         }
 
-        private void RefreshTasksAsync(Action callback)
+        private void RefreshTasksAsync(Action onSuccess, Action onFailure)
         {
             lock (syncRoot)
             {
@@ -87,9 +89,24 @@ namespace RedmineTaskListPackage
                 {
                     running = true;
                     Action action = new Action(RefreshTasks);
-                    action.BeginInvoke((AsyncCallback)(x => { 
-                        action.EndInvoke(x); 
-                        callback.Invoke(); 
+                    action.BeginInvoke((AsyncCallback)(x => {
+                        Action callback = onSuccess;
+
+                        try
+                        {
+                            action.EndInvoke(x);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e);
+                            callback = onFailure;
+                        }
+
+                        if (callback != null)
+                        {
+                            callback.Invoke();
+                        }
+
                         running = false; 
                     }), null);
                 }
@@ -107,12 +124,8 @@ namespace RedmineTaskListPackage
 
                 foreach (var issue in GetTasks(options))
                 {
-                    AddTask(options, issue);
+                    taskProvider.Tasks.Add(new RedmineTask(options, issue));
                 }
-            }
-            catch (Exception exception)
-            {
-                Debug.WriteLine(exception);
             }
             finally
             {
@@ -153,16 +166,30 @@ namespace RedmineTaskListPackage
             };
         }
 
-        private void AddTask(PackageOptions options, RedmineIssue issue)
-        {
-            taskProvider.Tasks.Add(new RedmineTask(options, issue));
-        }
 
         private void OutputLine(string s)
         {
-            var outputPane = GetOutputPane(VSConstants.SID_SVsGeneralOutputWindowPane, "Redmine");
-            
-            outputPane.OutputString(s + '\n');
+            GetOutputPane().OutputString(s + '\n');
+        }
+
+        private void ShowOutputPane()
+        {
+            if (!VsShellUtilities.ShellIsShuttingDown)
+            {
+                IUIService service = this.GetService(typeof(IUIService)) as IUIService;
+                
+                if (service != null)
+                {
+                    service.ShowToolWindow(new Guid(ToolWindowGuids.Outputwindow));
+                }
+
+                GetOutputPane().Activate();
+            }
+        }
+
+        private IVsOutputWindowPane GetOutputPane()
+        {
+            return GetOutputPane(VSConstants.SID_SVsGeneralOutputWindowPane, "Redmine");
         }
     }
 }
