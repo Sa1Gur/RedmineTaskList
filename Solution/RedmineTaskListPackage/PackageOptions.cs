@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Shell;
 namespace RedmineTaskListPackage
 {
     [CLSCompliant(false), ComVisible(true)]
-    public class RedmineOptions : DialogPage
+    public class PackageOptions : DialogPage
     {
         public const string DefaultLogin = "admin";
         public const string DefaultUrl = "http://localhost:3000/";
@@ -15,7 +15,7 @@ namespace RedmineTaskListPackage
         [Description("Username used for authentication. Only issues assigned to this user will be requested.")]
         public string Username { get; set; }
         
-        [Category("Authentication"), DefaultValue(DefaultLogin), PasswordPropertyText(true)]
+        [Category("Authentication"), PasswordPropertyText(true)]
         [Description("Password used for authentication.")]
         public string Password { get; set; }
         
@@ -28,8 +28,15 @@ namespace RedmineTaskListPackage
         public bool RequestOnStartup { get; set; }
 
 
-        public RedmineOptions()
+        public PackageOptions()
         {
+            ResetSettings();
+        }
+
+        public override void ResetSettings()
+        {
+            base.ResetSettings();
+            
             Username = DefaultLogin;
             Password = DefaultLogin;
             URL = DefaultUrl;

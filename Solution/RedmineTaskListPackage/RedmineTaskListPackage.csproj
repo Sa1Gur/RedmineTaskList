@@ -116,7 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RedmineTask.cs" />
-    <Compile Include="RedmineOptions.cs">
+    <Compile Include="PackageOptions.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="RedmineTaskProvider.cs" />

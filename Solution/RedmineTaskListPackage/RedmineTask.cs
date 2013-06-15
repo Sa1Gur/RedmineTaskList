@@ -9,7 +9,7 @@ namespace RedmineTaskListPackage
     {
         private string issueUrl;
 
-        public RedmineTask(RedmineOptions options, RedmineIssue issue)
+        public RedmineTask(PackageOptions options, RedmineIssue issue)
         {
             issueUrl = GetIssueUrl(options.URL, issue.Id);
 

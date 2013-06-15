@@ -11,7 +11,7 @@ namespace RedmineTaskListPackage
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
-    [ProvideOptionPage(typeof(RedmineOptions), OptionsCategoryName, OptionsPageName, 101, 106, true)]
+    [ProvideOptionPage(typeof(PackageOptions), OptionsCategoryName, OptionsPageName, 101, 106, true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)] 
     [Guid(Guids.guidRedminePkgString)]
@@ -120,7 +120,7 @@ namespace RedmineTaskListPackage
             }
         }
 
-        private RedmineIssue[] GetTasks(RedmineOptions options)
+        private RedmineIssue[] GetTasks(PackageOptions options)
         {
             OutputLine(String.Format("Retrieving issues from {0} as {1}...", options.URL, options.Username));
 
@@ -140,12 +140,12 @@ namespace RedmineTaskListPackage
             }
         }
 
-        private RedmineOptions GetOptions()
+        private PackageOptions GetOptions()
         {
             var dte = (DTE)GetService(typeof(DTE));
             var properties = dte.get_Properties(OptionsCategoryName, OptionsPageName);
 
-            return new RedmineOptions() {
+            return new PackageOptions() {
                 Username = (string)properties.Item("Username").Value,
                 Password = (string)properties.Item("Password").Value,
                 URL = (string)properties.Item("URL").Value,
@@ -153,7 +153,7 @@ namespace RedmineTaskListPackage
             };
         }
 
-        private void AddTask(RedmineOptions options, RedmineIssue issue)
+        private void AddTask(PackageOptions options, RedmineIssue issue)
         {
             taskProvider.Tasks.Add(new RedmineTask(options, issue));
         }
