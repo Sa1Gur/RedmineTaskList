@@ -3,7 +3,7 @@
   <Metadata>
     <Identity Id="97535913-77a4-4d2a-ba30-6c4702d8ec5c" Version="1.0" Language="en-US" Publisher="Dmitry Popov" />
     <DisplayName>Redmine Task List</DisplayName>
-    <Description xml:space="preserve">Displays Redmine issues in Task List tool window</Description>
+    <Description xml:space="preserve">Displays Redmine issues as tasks in Task List tool window.</Description>
     <Icon>Resources\Package.ico</Icon>
   </Metadata>
   <Installation InstalledByMsi="false">
