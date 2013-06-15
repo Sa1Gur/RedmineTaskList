@@ -164,6 +164,7 @@ namespace RedmineTaskListPackage
                 URL = (string)properties.Item("URL").Value,
                 RequestOnStartup = (bool)properties.Item("RequestOnStartup").Value,
                 Limit = (int)properties.Item("Limit").Value,
+                TaskDescriptionFormat = (string)properties.Item("TaskDescriptionFormat").Value,
             };
         }
 

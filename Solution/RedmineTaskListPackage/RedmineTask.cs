@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.Shell;
 using Redmine;
 
@@ -25,7 +26,31 @@ namespace RedmineTaskListPackage
             Category = TaskCategory.Misc;
             Priority = (TaskPriority)Math.Max(3 - issue.PriorityId, 0);
 
-            Text = String.Format("#{0}\t{1}\t{2} ({3})", issue.Id, issue.TrackerName, issue.Subject, issue.StatusName);
+            Text = String.Format(
+                Regex.Unescape(options.TaskDescriptionFormat),
+                issue.Id,
+                issue.ProjectId,
+                issue.ProjectName,
+                issue.TrackerId,
+                issue.TrackerName,
+                issue.StatusId,
+                issue.StatusName,
+                issue.PriorityId,
+                issue.PriorityName,
+                issue.AuthorId,
+                issue.AuthorName,
+                issue.AssigneeId,
+                issue.AssigneeName,
+                issue.Subject,
+                issue.Description,
+                issue.StartDate,
+                issue.DueDate,
+                issue.DoneRatio,
+                issue.EstimatedHours,
+                issue.CreationTime,
+                issue.LastUpdateTime,
+                issue.ClosingTime
+             );
         }
 
         protected override void OnNavigate(EventArgs e)
