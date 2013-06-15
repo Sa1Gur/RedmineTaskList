@@ -12,14 +12,18 @@ namespace RedmineTaskListPackage
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
-    [ProvideOptionPage(typeof(RedmineOptions), "Redmine Task List", "Connection settings", 101, 106, true)]
+    [ProvideOptionPage(typeof(RedmineOptions), OptionsCategoryName, OptionsPageName, 101, 106, true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)] 
     [Guid(Guids.guidRedminePkgString)]
     public sealed class RedmineTaskListPackage : Package, IDisposable
     {
+        public const string OptionsCategoryName = "Redmine Task List";
+        public const string OptionsPageName = "General";
+
         private RedmineTaskProvider taskProvider;
         private MenuCommand getTasksMenuCommand;
+        private IVsOutputWindowPane outputPane;
 
         public RedmineTaskListPackage()
         {
@@ -27,7 +31,12 @@ namespace RedmineTaskListPackage
             
             getTasksMenuCommand = new MenuCommand(GetTasksMenuItemCallback, getTasksCommandID);
         }
+        
 
+        public void Dispose()
+        {
+            taskProvider.Dispose();
+        }
 
         protected override void Initialize()
         {
@@ -35,6 +44,8 @@ namespace RedmineTaskListPackage
 
             InitializeTaskProvider();
             AddMenuCommands();
+
+            outputPane = GetOutputPane(VSConstants.SID_SVsGeneralOutputWindowPane, "Redmine");
         }
 
         private void AddMenuCommands()
@@ -72,30 +83,50 @@ namespace RedmineTaskListPackage
             taskProvider.SuspendRefresh();
             taskProvider.Tasks.Clear();
 
-            foreach (var issue in GetTasks())
+            try
             {
-                AddTask(issue);
+                foreach (var issue in GetTasks())
+                {
+                    AddTask(issue);
+                }
             }
-
-            taskProvider.ResumeRefresh();
+            finally
+            {
+                taskProvider.ResumeRefresh();
+            }
         }
 
         private RedmineIssue[] GetTasks()
         {
             var options = GetOptions();
 
-            return RedmineTaskList.Get(options.Username, options.Password, options.URL);
+            OutputLine(String.Format("Retrieving issues from {0} as {1}...", options.URL, options.Username));
+
+            try
+            {
+                var issues = RedmineTaskList.Get(options.Username, options.Password, options.URL);
+                
+                OutputLine("Done");
+
+                return issues;
+            }
+            catch
+            {
+                OutputLine("Error");
+
+                throw;
+            }
         }
 
         private RedmineOptions GetOptions()
         {
             var dte = (DTE)GetService(typeof(DTE));
-            var properties = dte.get_Properties("Redmine Task List", "Connection settings");
+            var properties = dte.get_Properties(OptionsCategoryName, OptionsPageName);
 
             return new RedmineOptions() {
-                Username = Convert.ToString(properties.Item("Username").Value),
-                Password = Convert.ToString(properties.Item("Password").Value),
-                URL = Convert.ToString(properties.Item("URL").Value),
+                Username = (string)properties.Item("Username").Value,
+                Password = (string)properties.Item("Password").Value,
+                URL = (string)properties.Item("URL").Value,
             };
         }
 
@@ -113,9 +144,9 @@ namespace RedmineTaskListPackage
             });
         }
 
-        public void Dispose()
+        private void OutputLine(string s)
         {
-            taskProvider.Dispose();
+            outputPane.OutputString(s + '\n');
         }
     }
 }
