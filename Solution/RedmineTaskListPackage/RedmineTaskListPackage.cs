@@ -139,7 +139,7 @@ namespace RedmineTaskListPackage
 
             try
             {
-                var issues = RedmineTaskList.Get(options.Username, options.Password, options.URL);
+                var issues = RedmineTaskList.Get(options.Username, options.Password, options.URL, options.Limit);
                 
                 OutputLine("Done");
 
@@ -163,6 +163,7 @@ namespace RedmineTaskListPackage
                 Password = (string)properties.Item("Password").Value,
                 URL = (string)properties.Item("URL").Value,
                 RequestOnStartup = (bool)properties.Item("RequestOnStartup").Value,
+                Limit = (int)properties.Item("Limit").Value,
             };
         }
 
