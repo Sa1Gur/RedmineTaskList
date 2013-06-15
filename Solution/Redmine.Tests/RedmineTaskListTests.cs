@@ -112,7 +112,7 @@ namespace Redmine.Tests
 
 
         [Test]
-        public void Get_AssertIssuesAreRequestedWithLimit()
+        public void Get_AssertCustomQuery()
         {
             var request = MockRepository.GenerateMock<TestWebRequest>();
             var response = CreateValidResponseStub(usersXml, issuesXml);
@@ -124,7 +124,7 @@ namespace Redmine.Tests
             request.Expect(x => x.Headers.Add("", "")).IgnoreArguments().Repeat.Times(2);
             request.Expect(x => x.GetResponse()).Return(response).Repeat.Times(2);
             
-            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine.org/", 3);
+            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine.org/", "assigned_to_id={0}&limit=3");
 
             request.VerifyAllExpectations();
         }

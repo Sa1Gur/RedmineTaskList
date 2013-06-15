@@ -18,13 +18,13 @@ namespace Redmine
             UserCache.Clear();
         }
 
-        public static RedmineIssue[] Get(string username, string password, string baseUriString, int limit = 0)
+        public static RedmineIssue[] Get(string username, string password, string baseUriString, string query="assigned_to_id={0}")
         {
             var baseUri = new Uri(baseUriString);
             var userId = FindUserId(username, password, baseUri);
 
-            var path = String.Concat("issues.xml?assigned_to_id=", userId);
-            var uri = new Uri(baseUri, limit == 0 ? path : String.Concat(path, "&limit=", limit));
+            var path = String.Concat("issues.xml?", String.Format(query, userId));
+            var uri = new Uri(baseUri, path);
             var xml = new RedmineWebRequest(username, password, uri).GetResponse();
             
             return RedmineXmlParser.ParseIssues(xml);

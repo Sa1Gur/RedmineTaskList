@@ -76,12 +76,7 @@ namespace RedmineTaskListPackage
             taskProvider.Register();
         }
 
-        private void RefreshTasksAsync()
-        {
-            RefreshTasksAsync(null, null);
-        }
-
-        private void RefreshTasksAsync(Action onSuccess, Action onFailure)
+        private void RefreshTasksAsync(Action onSuccess = null, Action onFailure = null)
         {
             lock (syncRoot)
             {
@@ -139,7 +134,7 @@ namespace RedmineTaskListPackage
 
             try
             {
-                var issues = RedmineTaskList.Get(options.Username, options.Password, options.URL, options.Limit);
+                var issues = RedmineTaskList.Get(options.Username, options.Password, options.URL, options.Query);
                 
                 OutputLine("Done");
 
@@ -163,7 +158,7 @@ namespace RedmineTaskListPackage
                 Password = (string)properties.Item("Password").Value,
                 URL = (string)properties.Item("URL").Value,
                 RequestOnStartup = (bool)properties.Item("RequestOnStartup").Value,
-                Limit = (int)properties.Item("Limit").Value,
+                Query = (string)properties.Item("Query").Value,
                 TaskDescriptionFormat = (string)properties.Item("TaskDescriptionFormat").Value,
             };
         }
