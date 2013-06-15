@@ -46,6 +46,11 @@ namespace RedmineTaskListPackage
             AddMenuCommands();
 
             outputPane = GetOutputPane(VSConstants.SID_SVsGeneralOutputWindowPane, "Redmine");
+
+            if (GetOptions().RequestOnStartup)
+            {
+                RefreshTasks();
+            }
         }
 
         private void AddMenuCommands()
@@ -60,15 +65,8 @@ namespace RedmineTaskListPackage
 
         private void GetTasksMenuItemCallback(object sender, EventArgs e)
         {
-            try
-            {
-                RefreshTasks();
-                taskProvider.Show();
-            }
-            catch (Exception exception)
-            {
-                Debug.WriteLine(exception);
-            }
+            RefreshTasks();
+            taskProvider.Show();
         }
 
 
@@ -89,6 +87,10 @@ namespace RedmineTaskListPackage
                 {
                     AddTask(issue);
                 }
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine(exception);
             }
             finally
             {
@@ -127,6 +129,7 @@ namespace RedmineTaskListPackage
                 Username = (string)properties.Item("Username").Value,
                 Password = (string)properties.Item("Password").Value,
                 URL = (string)properties.Item("URL").Value,
+                RequestOnStartup = (bool)properties.Item("RequestOnStartup").Value,
             };
         }
 
