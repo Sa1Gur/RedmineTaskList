@@ -157,16 +157,24 @@ namespace RedmineTaskListPackage
 
         private void AddTask(RedmineIssue issue)
         {
-            taskProvider.Tasks.Add(new Task() {
-                Priority = TaskPriority.Normal,
+            taskProvider.Tasks.Add(CreateTask(issue));
+        }
+
+        private static Task CreateTask(RedmineIssue issue)
+        {
+            TaskPriority priority = (TaskPriority)Math.Max(3 - issue.PriorityId, 0);
+
+            return new Task() {
+                Priority = priority,
                 IsPriorityEditable = false,
+                Checked = false,
                 IsCheckedEditable = false,
                 IsTextEditable = false,
                 CanDelete = false,
                 ImageIndex = 2,
                 Category = TaskCategory.Misc,
-                Text = String.Format("#{0} - {1}", issue.Id, issue.Subject),
-            });
+                Text = String.Format("#{0}\t{1}\t{2} ({3})", issue.Id, issue.TrackerName, issue.Subject, issue.StatusName),
+            };
         }
 
         private void OutputLine(string s)
