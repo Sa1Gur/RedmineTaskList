@@ -2,11 +2,9 @@
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Redmine;
 
 namespace RedmineTaskListPackage
@@ -105,9 +103,11 @@ namespace RedmineTaskListPackage
 
             try
             {
-                foreach (var issue in GetTasks())
+                var options = GetOptions();
+
+                foreach (var issue in GetTasks(options))
                 {
-                    AddTask(issue);
+                    AddTask(options, issue);
                 }
             }
             catch (Exception exception)
@@ -120,10 +120,8 @@ namespace RedmineTaskListPackage
             }
         }
 
-        private RedmineIssue[] GetTasks()
+        private RedmineIssue[] GetTasks(RedmineOptions options)
         {
-            var options = GetOptions();
-
             OutputLine(String.Format("Retrieving issues from {0} as {1}...", options.URL, options.Username));
 
             try
@@ -155,26 +153,9 @@ namespace RedmineTaskListPackage
             };
         }
 
-        private void AddTask(RedmineIssue issue)
+        private void AddTask(RedmineOptions options, RedmineIssue issue)
         {
-            taskProvider.Tasks.Add(CreateTask(issue));
-        }
-
-        private static Task CreateTask(RedmineIssue issue)
-        {
-            TaskPriority priority = (TaskPriority)Math.Max(3 - issue.PriorityId, 0);
-
-            return new Task() {
-                Priority = priority,
-                IsPriorityEditable = false,
-                Checked = false,
-                IsCheckedEditable = false,
-                IsTextEditable = false,
-                CanDelete = false,
-                ImageIndex = 2,
-                Category = TaskCategory.Misc,
-                Text = String.Format("#{0}\t{1}\t{2} ({3})", issue.Id, issue.TrackerName, issue.Subject, issue.StatusName),
-            };
+            taskProvider.Tasks.Add(new RedmineTask(options, issue));
         }
 
         private void OutputLine(string s)

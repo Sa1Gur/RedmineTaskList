@@ -115,6 +115,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RedmineTask.cs" />
     <Compile Include="RedmineOptions.cs">
       <SubType>Component</SubType>
     </Compile>
