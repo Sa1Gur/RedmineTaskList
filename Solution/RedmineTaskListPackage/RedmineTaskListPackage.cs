@@ -7,6 +7,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Redmine;
+using RedmineTaskListPackage.Tree;
 
 namespace RedmineTaskListPackage
 {
@@ -73,12 +74,18 @@ namespace RedmineTaskListPackage
 
         private void ShowExplorerMenuItemCallback(object sender, EventArgs e)
         {
-            var window = FindToolWindow(typeof(RedmineExplorerToolWindow), 0, true);
+            var window = FindToolWindow(typeof(RedmineExplorerToolWindow), 0, true) as RedmineExplorerToolWindow;
             
             if (window == null || window.Frame == null)
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
+
+            var options = GetOptions();
+            var projects = RedmineService.GetProjects(options.Username, options.Password, options.URL);
+            var tree = RedmineProjectTree.Create(projects);
+            
+            window.SetTree(tree);
             
             var windowFrame = (IVsWindowFrame)window.Frame;
             ErrorHandler.ThrowOnFailure(windowFrame.Show());

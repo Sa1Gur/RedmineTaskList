@@ -84,7 +84,10 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tree\RedmineProjectTreeNodeCollection.cs" />
+    <Compile Include="Tree\RedmineProjectTreeNode.cs" />
     <Compile Include="RedmineExplorerToolWindow.cs" />
+    <Compile Include="Tree\RedmineProjectTree.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

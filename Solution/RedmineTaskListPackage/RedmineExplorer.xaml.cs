@@ -1,4 +1,6 @@
 ﻿using System.Windows.Controls;
+using Redmine;
+using RedmineTaskListPackage.Tree;
 
 namespace RedmineTaskListPackage
 {
