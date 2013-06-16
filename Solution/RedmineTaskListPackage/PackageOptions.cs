@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 
 namespace RedmineTaskListPackage
@@ -8,6 +10,9 @@ namespace RedmineTaskListPackage
     [CLSCompliant(false), ComVisible(true)]
     public class PackageOptions : DialogPage
     {
+        public const string Category = "Redmine Task List";
+        public const string Page = "General";
+
         public const string DefaultLogin = "admin";
         public const string DefaultUrl = "http://localhost:3000/";
         public const string DefaultQuery = "assigned_to_id={0}";
@@ -40,19 +45,44 @@ namespace RedmineTaskListPackage
 
         public PackageOptions()
         {
-            ResetSettings();
+            Initialize();
         }
 
-        public override void ResetSettings()
+        private void Initialize()
         {
-            base.ResetSettings();
-            
             Username = DefaultLogin;
             Password = DefaultLogin;
             URL = DefaultUrl;
             RequestOnStartup = false;
             Query = DefaultQuery;
             TaskDescriptionFormat = DefaultTaskDescriptionFormat;
+        }
+
+        public override void ResetSettings()
+        {
+            base.ResetSettings();
+            Initialize();
+        }
+
+        public static PackageOptions GetOptions(IServiceProvider provider)
+        {
+            var options = new PackageOptions();
+            var dteProperties = GetDteProperties(provider);
+            var publicNoInheritance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
+
+            foreach (var property in typeof(PackageOptions).GetProperties(publicNoInheritance))
+            {
+                property.SetValue(options, dteProperties.Item(property.Name).Value);
+            }
+
+            return  options;
+        }
+
+        private static Properties GetDteProperties(IServiceProvider provider)
+        {
+            var dte = (DTE)provider.GetService(typeof(DTE));
+            
+            return dte.get_Properties(Category, Page);
         }
     }
 }

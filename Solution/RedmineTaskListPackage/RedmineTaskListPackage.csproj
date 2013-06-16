@@ -115,6 +115,11 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Content Include="License.txt">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -124,11 +129,6 @@
     </Compile>
     <Compile Include="RedmineTaskProvider.cs" />
     <Compile Include="Guids.cs" />
-    <Compile Include="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="RedmineTaskListPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -137,8 +137,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="RedmineTaskListPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>

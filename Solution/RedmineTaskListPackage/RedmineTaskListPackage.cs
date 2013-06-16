@@ -3,7 +3,6 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms.Design;
-using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -13,15 +12,12 @@ namespace RedmineTaskListPackage
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
-    [ProvideOptionPage(typeof(PackageOptions), OptionsCategoryName, OptionsPageName, 101, 106, true)]
+    [ProvideOptionPage(typeof(PackageOptions), PackageOptions.Category, PackageOptions.Page, 101, 106, true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)] 
     [Guid(Guids.guidRedminePkgString)]
     public sealed class RedmineTaskListPackage : Package, IDisposable
     {
-        public const string OptionsCategoryName = "Redmine Task List";
-        public const string OptionsPageName = "General";
-
         private RedmineTaskProvider taskProvider;
         private MenuCommand getTasksMenuCommand;
         private object syncRoot;
@@ -150,17 +146,7 @@ namespace RedmineTaskListPackage
 
         private PackageOptions GetOptions()
         {
-            var dte = (DTE)GetService(typeof(DTE));
-            var properties = dte.get_Properties(OptionsCategoryName, OptionsPageName);
-
-            return new PackageOptions() {
-                Username = (string)properties.Item("Username").Value,
-                Password = (string)properties.Item("Password").Value,
-                URL = (string)properties.Item("URL").Value,
-                RequestOnStartup = (bool)properties.Item("RequestOnStartup").Value,
-                Query = (string)properties.Item("Query").Value,
-                TaskDescriptionFormat = (string)properties.Item("TaskDescriptionFormat").Value,
-            };
+            return PackageOptions.GetOptions(this);
         }
 
 
