@@ -149,7 +149,7 @@ namespace RedmineTaskListPackage
 
             try
             {
-                var issues = RedmineTaskList.Get(options.Username, options.Password, options.URL, options.Query);
+                var issues = RedmineService.GetIssues(options.Username, options.Password, options.URL, options.Query);
                 
                 OutputLine("Done");
 

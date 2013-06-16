@@ -8,16 +8,16 @@ using Rhino.Mocks;
 namespace Redmine.Tests
 {
     [TestFixture]
-    public class RedmineTaskListTests
+    public class RedmineServiceTests
     {
         [SetUp]
         public void SetUp()
         {
-            RedmineTaskList.ClearUserCache();
+            RedmineService.ClearUserCache();
         }
 
         [Test]
-        public void Get()
+        public void GetIssues()
         {
             var request = MockRepository.GenerateMock<TestWebRequest>();
             var response = CreateValidResponseStub(usersXml, issuesXml);
@@ -27,14 +27,14 @@ namespace Redmine.Tests
             request.Expect(x => x.Headers.Add("", "")).IgnoreArguments();
             request.Stub(x => x.GetResponse()).Return(response);
             
-            var issues = RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine.org/");
+            var issues = RedmineService.GetIssues("lemon", "Pa$sw0rd", "test://redmine.org/");
 
             Assert.AreEqual(1, issues.Length);
             Assert.AreEqual("Parse Redmine API XML", issues[0].Subject);
         }
 
         [Test]
-        public void Get_AssertUri()
+        public void GetIssues_AssertUri()
         {
             var request = MockRepository.GenerateMock<TestWebRequest>();
             var response = CreateValidResponseStub(usersXml, issuesXml);
@@ -46,13 +46,13 @@ namespace Redmine.Tests
             request.Expect(x => x.Headers.Add("", "")).IgnoreArguments().Repeat.Twice();
             request.Expect(x => x.GetResponse()).Return(response).Repeat.Twice();
             
-            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine.org/");
+            RedmineService.GetIssues("lemon", "Pa$sw0rd", "test://redmine.org/");
 
             request.VerifyAllExpectations();
         }
 
         [Test]
-        public void Get_AssertUserIdIsCached()
+        public void GetIssues_AssertUserIdIsCached()
         {
             var request = MockRepository.GenerateMock<TestWebRequest>();
             var response = CreateValidResponseStub(usersXml, issuesXml, issuesXml);
@@ -64,14 +64,14 @@ namespace Redmine.Tests
             request.Expect(x => x.Headers.Add("", "")).IgnoreArguments().Repeat.Times(3);
             request.Expect(x => x.GetResponse()).Return(response).Repeat.Times(3);
             
-            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine.org/");
-            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine.org/");
+            RedmineService.GetIssues("lemon", "Pa$sw0rd", "test://redmine.org/");
+            RedmineService.GetIssues("lemon", "Pa$sw0rd", "test://redmine.org/");
 
             request.VerifyAllExpectations();
         }
 
         [Test]
-        public void Get_AssertUserIdIsCachedWithRespectToUrl()
+        public void GetIssues_AssertUserIdIsCachedWithRespectToUrl()
         {
             var request = MockRepository.GenerateMock<TestWebRequest>();
             var response = CreateValidResponseStub(usersXml, issuesXml, usersXml, issuesXml);
@@ -85,14 +85,14 @@ namespace Redmine.Tests
             request.Expect(x => x.Headers.Add("", "")).IgnoreArguments().Repeat.Times(4);
             request.Expect(x => x.GetResponse()).Return(response).Repeat.Times(4);
             
-            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine1.org/");
-            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine2.org/");
+            RedmineService.GetIssues("lemon", "Pa$sw0rd", "test://redmine1.org/");
+            RedmineService.GetIssues("lemon", "Pa$sw0rd", "test://redmine2.org/");
 
             request.VerifyAllExpectations();
         }
 
         [Test]
-        public void Get_AssertUsersAreRequestedContinuouslyUntilLoginFound()
+        public void GetIssues_AssertUsersAreRequestedContinuouslyUntilLoginFound()
         {
             var request = MockRepository.GenerateMock<TestWebRequest>();
             var response = CreateValidResponseStub(usersXmlCount3Offset0Limit1, usersXmlCount3Offset1Limit1, issuesXml);
@@ -105,14 +105,14 @@ namespace Redmine.Tests
             request.Expect(x => x.Headers.Add("", "")).IgnoreArguments().Repeat.Times(3);
             request.Expect(x => x.GetResponse()).Return(response).Repeat.Times(3);
             
-            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine.org/");
+            RedmineService.GetIssues("lemon", "Pa$sw0rd", "test://redmine.org/");
 
             request.VerifyAllExpectations();
         }
 
 
         [Test]
-        public void Get_AssertCustomQuery()
+        public void GetIssues_AssertCustomQuery()
         {
             var request = MockRepository.GenerateMock<TestWebRequest>();
             var response = CreateValidResponseStub(usersXml, issuesXml);
@@ -124,7 +124,7 @@ namespace Redmine.Tests
             request.Expect(x => x.Headers.Add("", "")).IgnoreArguments().Repeat.Times(2);
             request.Expect(x => x.GetResponse()).Return(response).Repeat.Times(2);
             
-            RedmineTaskList.Get("lemon", "Pa$sw0rd", "test://redmine.org/", "assigned_to_id={0}&limit=3");
+            RedmineService.GetIssues("lemon", "Pa$sw0rd", "test://redmine.org/", "assigned_to_id={0}&limit=3");
 
             request.VerifyAllExpectations();
         }

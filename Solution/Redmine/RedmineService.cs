@@ -4,11 +4,11 @@ using System.Linq;
 
 namespace Redmine
 {
-    public static class RedmineTaskList
+    public static class RedmineService
     {
         private static Dictionary<string, int> UserCache;
 
-        static RedmineTaskList()
+        static RedmineService()
         {
             UserCache = new Dictionary<string, int>();
         }
@@ -18,7 +18,7 @@ namespace Redmine
             UserCache.Clear();
         }
 
-        public static RedmineIssue[] Get(string username, string password, string baseUriString, string query="assigned_to_id={0}")
+        public static RedmineIssue[] GetIssues(string username, string password, string baseUriString, string query="assigned_to_id={0}")
         {
             var baseUri = new Uri(baseUriString);
             var userId = FindUserId(username, password, baseUri);
