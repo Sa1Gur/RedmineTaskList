@@ -13,6 +13,7 @@ namespace RedmineTaskListPackage
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(PackageOptions), PackageOptions.Category, PackageOptions.Page, 101, 106, true)]
+    [ProvideToolWindow(typeof(RedmineExplorerToolWindow))]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)] 
     [Guid(Guids.guidRedminePkgString)]
@@ -20,14 +21,18 @@ namespace RedmineTaskListPackage
     {
         private RedmineTaskProvider taskProvider;
         private MenuCommand getTasksMenuCommand;
+        private MenuCommand showExplorerMenuCommand;
         private object syncRoot;
         private bool running;
 
         public RedmineTaskListPackage()
         {
             var getTasksCommandID = new CommandID(Guids.guidRedmineCmdSet, (int)CommandIDs.cmdidGetTasks);
-            
             getTasksMenuCommand = new MenuCommand(GetTasksMenuItemCallback, getTasksCommandID);
+            
+            var showExplorerCommandID = new CommandID(Guids.guidRedmineCmdSet, (int)CommandIDs.cmdidRedmineExplorer);
+            showExplorerMenuCommand = new MenuCommand(ShowExplorerMenuItemCallback, showExplorerCommandID);
+            
             syncRoot = new object();
         }
         
@@ -57,12 +62,26 @@ namespace RedmineTaskListPackage
             if (menuCommandService != null)
             {
                 menuCommandService.AddCommand(getTasksMenuCommand);
+                menuCommandService.AddCommand(showExplorerMenuCommand);
             }
         }
 
         private void GetTasksMenuItemCallback(object sender, EventArgs e)
         {
             RefreshTasksAsync(taskProvider.Show, ShowOutputPane);
+        }
+
+        private void ShowExplorerMenuItemCallback(object sender, EventArgs e)
+        {
+            var window = FindToolWindow(typeof(RedmineExplorerToolWindow), 0, true);
+            
+            if (window == null || window.Frame == null)
+            {
+                throw new NotSupportedException(Resources.CanNotCreateWindow);
+            }
+            
+            var windowFrame = (IVsWindowFrame)window.Frame;
+            ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
 
 
