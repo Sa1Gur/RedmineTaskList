@@ -72,7 +72,7 @@ namespace RedmineTaskListPackage
 
             foreach (var property in typeof(PackageOptions).GetProperties(publicNoInheritance))
             {
-                property.SetValue(options, dteProperties.Item(property.Name).Value);
+                property.SetValue(options, dteProperties.Item(property.Name).Value, null);
             }
 
             return  options;
