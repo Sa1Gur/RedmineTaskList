@@ -4,7 +4,11 @@
     <Identity Id="97535913-77a4-4d2a-ba30-6c4702d8ec5c" Version="1.0" Language="en-US" Publisher="Dmitry Popov" />
     <DisplayName>Redmine Task List</DisplayName>
     <Description xml:space="preserve">Displays Redmine issues as tasks in Task List tool window.</Description>
-    <Icon>Resources\Package.ico</Icon>
+    <MoreInfo >http://redminetasklist.codeplex.com</MoreInfo>
+    <License>License.txt</License>
+    <Icon>Package.ico</Icon>
+    <PreviewImage>Preview.png</PreviewImage>
+    <Tags>issue tracking</Tags>
   </Metadata>
   <Installation InstalledByMsi="false">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="11.0" />

@@ -115,6 +115,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="License.txt">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Compile Include="RedmineTask.cs" />
     <Compile Include="PackageOptions.cs">
       <SubType>Component</SubType>
@@ -158,16 +161,22 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Icons.png" />
-    <Content Include="Resources\Package.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Redmine\Redmine.csproj">
       <Project>{67428944-1e7e-4867-81c3-d31a35f888fe}</Project>
       <Name>Redmine</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Package.ico">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Preview.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
