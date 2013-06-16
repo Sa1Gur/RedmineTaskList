@@ -57,7 +57,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RedmineTaskListTests.cs" />
+    <Compile Include="RedmineServiceTests.cs" />
     <Compile Include="TestWebRequest.cs" />
     <Compile Include="RedmineWebRequestTests.cs" />
     <Compile Include="RedmineXmlParserTests.cs">
