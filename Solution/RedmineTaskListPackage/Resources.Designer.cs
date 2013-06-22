@@ -80,7 +80,7 @@ namespace RedmineTaskListPackage {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Redmine Explorer.
+        ///   Looks up a localized string similar to Redmine Issue Viewer.
         /// </summary>
         internal static string ToolWindowTitle {
             get {
