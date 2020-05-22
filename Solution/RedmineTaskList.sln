@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.128
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Redmine.Tests", "Redmine.Tests\Redmine.Tests.csproj", "{F3FB77C5-35DF-4867-A09D-0EE91BEDE8B4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Redmine", "Redmine\Redmine.csproj", "{67428944-1E7E-4867-81C3-D31A35F888FE}"
@@ -34,5 +36,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8567F42B-EE4B-42AB-A123-22B86A21B82E}
 	EndGlobalSection
 EndGlobal
