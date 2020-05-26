@@ -32,7 +32,7 @@ namespace RedmineTaskListPackage
         {
             try
             {
-                return String.Format
+                return string.Format
                     (Regex.Unescape(format),
                      issue.Id,
                      issue.ProjectId,

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Microsoft;
 using Microsoft.VisualStudio.Shell;
 
 namespace RedmineTaskListPackage
@@ -87,12 +88,9 @@ namespace RedmineTaskListPackage
         public bool RequestGlobal { get; set; }
 
 
-        public PackageOptions()
-        {
-            Initialize();
-        }
+        public PackageOptions() => Initialize();        
 
-        private void Initialize()
+        void Initialize()
         {
             Username = DefaultLogin;
             Password = DefaultLogin;
@@ -138,9 +136,9 @@ namespace RedmineTaskListPackage
 
             if (ProxyOptions == ProxyOptions.Default)
             {
-                proxy = HttpWebRequest.DefaultWebProxy;
+                proxy = WebRequest.DefaultWebProxy;
             }
-            else if (ProxyOptions == ProxyOptions.Custom && !String.IsNullOrEmpty(ProxyServer))
+            else if (ProxyOptions == ProxyOptions.Custom && !string.IsNullOrEmpty(ProxyServer))
             {
                 proxy = GetCustomProxy();
             }
@@ -183,6 +181,9 @@ namespace RedmineTaskListPackage
 
         public static PackageOptions GetOptions(IServiceProvider provider)
         {
+            //TODO: One or more extensions were loaded using deprecated APIs. Don’t allow deprecated API usage [Recommended] Manage performance Don’t show this message for current extensions 
+
+            //ThreadHelper.ThrowIfNotOnUIThread();
             var options = new PackageOptions();
             var dteProperties = GetDteProperties(provider);
             var publicNoInheritance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
@@ -197,8 +198,9 @@ namespace RedmineTaskListPackage
 
         private static EnvDTE.Properties GetDteProperties(IServiceProvider provider)
         {
+            //ThreadHelper.ThrowIfNotOnUIThread();
             var dte = (EnvDTE.DTE)provider.GetService(typeof(EnvDTE.DTE));
-            
+            //Assumes.Present(dte);
             return dte.get_Properties(Category, Page);
         }
     }

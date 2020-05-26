@@ -1,26 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
+﻿using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Redmine;
 using RedmineTaskListPackage.Forms;
 using RedmineTaskListPackage.ViewModel;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows.Forms;
+
+using Task = System.Threading.Tasks.Task;//essential, because compiler takes wrong Task somehow...
 
 namespace RedmineTaskListPackage
 {
-    [PackageRegistration(UseManagedResourcesOnly = true)]
-    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [InstalledProductRegistration("#110", "#112", "#version", IconResourceID = 400)]
+    //[ProvideService(typeof(MyService), IsAsyncQueryable = true)]
     [ProvideOptionPage(typeof(PackageOptions), PackageOptions.Category, PackageOptions.Page, 101, 106, true)]
     [ProvideToolWindow(typeof(RedmineIssueViewerToolWindow))]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string, PackageAutoLoadFlags.BackgroundLoad)]
     [Guid(Guids.guidRedminePkgString)]
-    public sealed class RedmineTaskListPackage : Package, IDisposable, IDebug
+    public sealed class RedmineTaskListPackage : AsyncPackage, IDisposable, IDebug
     {
         private RedmineTaskProvider taskProvider;
         private MenuCommand getTasksMenuCommand;
@@ -28,17 +33,15 @@ namespace RedmineTaskListPackage
         private MenuCommand projectSettingsMenuCommand;
         private RedmineIssueViewerToolWindow issueViewerWindow;
         private RedmineWebBrowser webBrowser;
-        private object syncRoot;
-        private bool refreshing;
-        private EnvDTE.SolutionEvents solutionEvents;
-        private EnvDTE.WindowEvents windowEvents;
-        private LoadedRedmineIssue[] _currentIssues;
+        
+        object syncRoot;
+        bool refreshing;
+        
+        EnvDTE.SolutionEvents solutionEvents;
 
-        private PackageOptions Options
-        {
-            get { return PackageOptions.GetOptions(this); }
-        }
+        LoadedRedmineIssue[] _currentIssues;
 
+        PackageOptions Options { get => PackageOptions.GetOptions(this); }
 
         public RedmineTaskListPackage()
         {
@@ -55,23 +58,19 @@ namespace RedmineTaskListPackage
             syncRoot = new object();
         }
 
+        public void Dispose() => taskProvider.Dispose();
 
-        public void Dispose()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            taskProvider.Dispose();
-        }
-
-
-        protected override void Initialize()
-        {
-            base.Initialize();
-
             InitializeTaskProvider();
-            AddMenuCommands();
+            await AddMenuCommandsAsync();
 
-            var dte = (EnvDTE.DTE)GetGlobalService(typeof(EnvDTE.DTE));
+            //await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetServiceAsync(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+            Assumes.Present(dte);
             solutionEvents = dte.Events.SolutionEvents;
-            windowEvents = dte.Events.WindowEvents;
+            
 
             solutionEvents.Opened += RefreshTasksAsync;
             solutionEvents.AfterClosing += () => taskProvider.Tasks.Clear();
@@ -84,12 +83,9 @@ namespace RedmineTaskListPackage
             }
         }
 
-        private void OnPackageOptionsApplied()
-        {
-            PopulateTaskList(_currentIssues);
-        }
+        void OnPackageOptionsApplied() => PopulateTaskList(_currentIssues);
 
-        private RedmineTask CreateTask(LoadedRedmineIssue issue, string format)
+        RedmineTask CreateTask(LoadedRedmineIssue issue, string format)
         {
             var task = new RedmineTask(issue, format);
 
@@ -98,35 +94,30 @@ namespace RedmineTaskListPackage
             return task;
         }
 
-        private void AddMenuCommands()
+        async Task AddMenuCommandsAsync()
         {
-            var menuService = GetService(typeof(IMenuCommandService)) as IMenuCommandService;
+            var menuService = await GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
 
-            if (menuService == null)
-            {
-                return;
-            }
-
-            menuService.AddCommand(getTasksMenuCommand);
-            menuService.AddCommand(viewIssueMenuCommand);
-            menuService.AddCommand(projectSettingsMenuCommand);
+            menuService?.AddCommand(getTasksMenuCommand);
+            menuService?.AddCommand(viewIssueMenuCommand);
+            menuService?.AddCommand(projectSettingsMenuCommand);
         }
 
-        private void GetTasksMenuItemCallback(object sender, EventArgs e)
+        async void GetTasksMenuItemCallback(object sender, EventArgs e)
         {
             InitializeIssueViewerWindow();
 
-            RefreshTasksAsync(taskProvider.Show);
+            await RefreshTasksAsync(taskProvider.Show);
         }
 
-        private void ViewIssueMenuItemCallback(object sender, EventArgs e)
+        void ViewIssueMenuItemCallback(object sender, EventArgs e)
         {
             InitializeIssueViewerWindow();
 
             issueViewerWindow.Show();
         }
 
-        private void ProjectSettingsMenuItemCallback(object sender, EventArgs e)
+        async void ProjectSettingsMenuItemCallback(object sender, EventArgs e)
         {
             var project = GetSelectedProject() as EnvDTE.Project;
             var storage = GetConnectionSettingsStorage(project);
@@ -136,7 +127,8 @@ namespace RedmineTaskListPackage
                 return;
             }
 
-            var dialog = new ConnectionSettingsDialog {
+            var dialog = new ConnectionSettingsDialog
+            {
                 ConnectionSettings = storage.Load(),
                 StartPosition = FormStartPosition.CenterParent,
             };
@@ -144,7 +136,7 @@ namespace RedmineTaskListPackage
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 storage.Save(dialog.ConnectionSettings);
-                RefreshTasksAsync();
+                await RefreshTasksAsync(null);
             }
         }
 
@@ -157,20 +149,19 @@ namespace RedmineTaskListPackage
             return projects.Length > 0 ? projects.GetValue(0) : null;
         }
 
-        private void InitializeTaskProvider()
+        void InitializeTaskProvider()
         {
             taskProvider = new RedmineTaskProvider(this);
             taskProvider.Register();
         }
 
 
-        private void RefreshTasksAsync()
-        {
-            RefreshTasksAsync(null);
-        }
+        async void RefreshTasksAsync() => await RefreshTasksAsync(null);        
 
-        private void RefreshTasksAsync(Action callback)
+        async Task RefreshTasksAsync(Action callback)
         {
+            return;
+
             lock (syncRoot)
             {
                 BeginRefreshTasks(callback);
@@ -186,15 +177,18 @@ namespace RedmineTaskListPackage
 
             refreshing = true;
 
+            return;
+
             var refresh = new Action(RefreshTasks);
 
             callback = callback ?? (() => { });
 
-            refresh.BeginInvoke((AsyncCallback)(x => {
+            refresh.BeginInvoke(x =>
+            {
                 refresh.EndInvoke(x);
                 callback.Invoke();
                 refreshing = false;
-            }), null);
+            }, null);
         }
 
         private void RefreshTasks()
@@ -224,7 +218,8 @@ namespace RedmineTaskListPackage
             CertificateValidator.ValidateAny = Options.ValidateAnyCertificate;
             CertificateValidator.Thumbprint = Options.CertificateThumbprint;
 
-            var loader = new IssueLoader {
+            var loader = new IssueLoader
+            {
                 Proxy = Options.GetProxy(),
                 Debug = this as IDebug,
             };
@@ -232,7 +227,7 @@ namespace RedmineTaskListPackage
             return loader.LoadIssues(GetConnectionSettings());
         }
 
-        private ConnectionSettings[] GetConnectionSettings()
+        ConnectionSettings[] GetConnectionSettings()
         {
             var settings = GetProjectConnectionSettings();
 
@@ -244,12 +239,11 @@ namespace RedmineTaskListPackage
             return settings.ToArray();
         }
 
-        private List<ConnectionSettings> GetProjectConnectionSettings()
+        List<ConnectionSettings> GetProjectConnectionSettings()
         {
             var dte = (EnvDTE.DTE)GetService(typeof(EnvDTE.DTE));
 
-            return dte.Solution.Projects.Cast<EnvDTE.Project>()
-                .Select(LoadConectionSettings).Where(x => x != null).ToList();
+            return dte.Solution.Projects.Cast<EnvDTE.Project>().Select(LoadConectionSettings).Where(x => x != null).ToList();
         }
 
 
@@ -262,9 +256,7 @@ namespace RedmineTaskListPackage
 
         private ConnectionSettingsStorage GetConnectionSettingsStorage(EnvDTE.Project project)
         {
-            var projectPath = "";
-
-            if (project == null || !TryGetProjectFullName(project, out projectPath))
+            if (project == null || !TryGetProjectFullName(project, out string projectPath))
             {
                 return null;
             }
@@ -284,17 +276,17 @@ namespace RedmineTaskListPackage
             return new ConnectionSettingsStorage(propertyStorage);
         }
 
-        private IVsBuildPropertyStorage GetPropertyStorage(string projectPath)
+        IVsBuildPropertyStorage GetPropertyStorage(string projectPath)
         {
             var solution = GetService(typeof(SVsSolution)) as IVsSolution;
-            var hierarchy = default(IVsHierarchy);
-
-            solution.GetProjectOfUniqueName(projectPath, out hierarchy);
+            
+            //TODO handle solution null
+            solution.GetProjectOfUniqueName(projectPath, out IVsHierarchy hierarchy);
 
             return hierarchy as IVsBuildPropertyStorage;
         }
 
-        private bool TryGetProjectFullName(EnvDTE.Project project, out string fullName)
+        bool TryGetProjectFullName(EnvDTE.Project project, out string fullName)
         {
             var result = true;
             fullName = null;
@@ -311,9 +303,6 @@ namespace RedmineTaskListPackage
             return result;
         }
 
-
-
-
         void IDebug.WriteLine(string s)
         {
             if (Options.EnableDebugOutput)
@@ -322,17 +311,11 @@ namespace RedmineTaskListPackage
             }
         }
 
-        private void OutputLine(string s)
-        {
-            GetOutputPane().OutputString(s + Environment.NewLine);
-        }
+        void OutputLine(string s) => GetOutputPane().OutputString(s + Environment.NewLine);        
 
-        private IVsOutputWindowPane GetOutputPane()
-        {
-            return GetOutputPane(VSConstants.SID_SVsGeneralOutputWindowPane, "Redmine");
-        }
+        IVsOutputWindowPane GetOutputPane() => GetOutputPane(VSConstants.SID_SVsGeneralOutputWindowPane, "Redmine");        
 
-        private void InitializeIssueViewerWindow()
+        void InitializeIssueViewerWindow()
         {
             if (issueViewerWindow != null)
             {
@@ -347,7 +330,7 @@ namespace RedmineTaskListPackage
             }
         }
 
-        private void Show(LoadedRedmineIssue issue)
+        void Show(LoadedRedmineIssue issue)
         {
             if (Options.OpenTasksInWebBrowser)
             {
@@ -384,7 +367,7 @@ namespace RedmineTaskListPackage
             {
                 var Debug = (IDebug)this;
 
-                Debug.WriteLine(String.Concat("Username: ", settings.Username, "; URL: ", redmine.BaseUriString));
+                Debug.WriteLine($"User-name: {settings.Username} URL: {redmine.BaseUriString}");
                 Debug.WriteLine(e.ToString());
             }
 

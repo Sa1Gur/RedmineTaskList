@@ -78,7 +78,7 @@ namespace Redmine
                 throw new InvalidOperationException("BaseUri is not set");
             }
 
-            var xml = GetXml(String.Concat("issues.xml?", query));
+            var xml = GetXml($"issues.xml?{query}");
             var issues = RedmineXmlParser.ParseIssues(xml);
 
             foreach (var issue in issues)
@@ -129,7 +129,7 @@ namespace Redmine
 
         private string GetXml(string path, int offset = 0)
         {
-            var uri = new Uri(BaseUri, offset == 0 ? path : String.Concat(path, "?offset=", offset));
+            var uri = new Uri(BaseUri, offset == 0 ? path : $"{path}?offset={offset}");
 
             var request = new RedmineWebRequest(Username, Password, uri, Proxy);
             

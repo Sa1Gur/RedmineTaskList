@@ -64,7 +64,7 @@ namespace RedmineTaskListPackage
 
         private bool IsValid(ConnectionSettings settings)
         {
-            return !String.IsNullOrEmpty(settings.URL);
+            return !string.IsNullOrEmpty(settings.URL);
         }
 
         private void GetIssues(ConnectionSettings settings)
@@ -80,7 +80,7 @@ namespace RedmineTaskListPackage
             {
                 if (Debug != null)
                 {
-                    Debug.WriteLine(String.Concat("Username: ", settings.Username, "; URL: ", redmine.BaseUriString, settings.Query));
+                    Debug.WriteLine($"Username: {settings.Username} URL: {redmine.BaseUriString} {settings.Query}");
                     Debug.WriteLine(e.ToString());
                 }
             }

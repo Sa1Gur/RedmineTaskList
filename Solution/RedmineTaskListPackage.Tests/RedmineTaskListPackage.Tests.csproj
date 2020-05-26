@@ -55,7 +55,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RedmineTaskListPackage\RedmineTaskListPackage.csproj">
       <Project>{515a4cad-8156-4811-8734-ffb83fd5bf79}</Project>
-      <Name>RedmineTaskListPackage</Name>
+      <Name>RedmineTaskListPackage_</Name>
     </ProjectReference>
     <ProjectReference Include="..\Redmine\Redmine.csproj">
       <Project>{67428944-1e7e-4867-81c3-d31a35f888fe}</Project>
